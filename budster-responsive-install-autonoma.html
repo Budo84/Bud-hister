@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>BudHitster</title>
+    
+    <meta name="theme-color" content="#121212">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="BudHitster">
+
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%23121212'/%3E%3Ccircle cx='256' cy='256' r='180' fill='%23222' stroke='%23444' stroke-width='20'/%3E%3Ccircle cx='256' cy='256' r='60' fill='%23fa2d48'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='180' fill='white'%3E%F0%9F%8E%B5%3C/text%3E%3C/svg%3E">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%23121212'/%3E%3Ccircle cx='256' cy='256' r='180' fill='%23222' stroke='%23444' stroke-width='20'/%3E%3Ccircle cx='256' cy='256' r='60' fill='%23fa2d48'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='180' fill='white'%3E%F0%9F%8E%B5%3C/text%3E%3C/svg%3E">
+
+    <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIkNpbmVIaXRzdGVyIiwKICAic2hvcnRfbmFtZSI6ICJDaW5lSGl0IiwKICAic3RhcnRfdXJsIjogIi4iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMxMjEyMTIiLAogICJ0aGVtZV9jb2xvciI6ICIjMTIxMjEyIiwKICAiaWNvbnMiOiBbCiAgICB7CiAgICAgICJzcmMiOiAiZGF0YTppbWFnZS9zdmcreG1sOy4uLihjb21lX3NvcHJhKSIsCiAgICAgICJzaXplcyI6ICIxOTJ4MTkyIiwKICAgICAgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIKICAgIH0KICBdCn0=">
+
+    <style>
+        /* CSS IDENTICO ALLA VERSIONE PRECEDENTE */
+        :root { 
+            --accent: #fa2d48; --dark-bg: #121212; --card-bg: #1e1e1e; 
+            --text-main: #ffffff; --text-sec: #bbbbbb;
+            --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: var(--font-stack); background-color: var(--dark-bg); color: var(--text-main);
+            margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh; text-align: center; padding: 20px; padding-top: env(safe-area-inset-top); /* Fix per iPhone notch */
+            overflow-x: hidden;
+        }
+
+        .app-container { width: 100%; max-width: 500px; display: flex; flex-direction: column; align-items: center; }
+
+        h1 { margin: 10px 0 20px 0; font-size: clamp(1.8rem, 5vw, 2.5rem); color: var(--accent); letter-spacing: -1px; }
+
+        .country-wrapper {
+            background: var(--card-bg); padding: 8px 15px; border-radius: 50px; margin-bottom: 20px;
+            display: inline-flex; align-items: center; border: 1px solid #333;
+        }
+        .country-wrapper label { margin-right: 10px; color: var(--text-sec); font-size: 0.9rem; }
+        select { background: transparent; color: white; border: none; font-size: 1rem; font-weight: bold; cursor: pointer; outline: none; }
+        option { background: #222; }
+
+        .category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px; width: 100%; }
+
+        .btn {
+            padding: 25px 15px; border: none; border-radius: 18px; font-size: 1.1rem; font-weight: 700; cursor: pointer;
+            color: white; background-color: #333; transition: transform 0.2s, filter 0.2s;
+            display: flex; flex-direction: column; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn-film { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
+        .btn-tv { background: linear-gradient(135deg, #f09819, #edde5d); color: #1a1a1a; }
+        .btn-cartoon { background: linear-gradient(135deg, #00b09b, #96c93d); }
+        .btn-icon { font-size: 1.8rem; display: block; }
+
+        #game-area { display: none; width: 100%; flex-direction: column; align-items: center; animation: fadeIn 0.5s ease; }
+        
+        .vinyl-container { position: relative; margin: 20px 0; }
+        .vinyl {
+            width: clamp(150px, 35vh, 260px); height: clamp(150px, 35vh, 260px);
+            border-radius: 50%; background: #222; border: 4px solid #444; 
+            display: flex; align-items: center; justify-content: center;
+            animation: spin 4s linear infinite; box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            font-size: 3rem; position: relative; z-index: 1;
+        }
+        .vinyl::after {
+            content: ''; position: absolute; width: 35%; height: 35%; 
+            background: var(--accent); border-radius: 50%; border: 3px solid white;
+        }
+        .vinyl.paused { animation-play-state: paused; opacity: 0.8; }
+        
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        #status-text { color: var(--text-sec); font-size: 0.9rem; margin-top: 10px; font-weight: 500; }
+
+        .card { 
+            background: var(--card-bg); padding: 25px; border-radius: 24px; width: 100%; margin-top: 20px; 
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3); border: 1px solid #333; transition: all 0.3s ease;
+        }
+        .hidden-info { filter: blur(15px); pointer-events: none; user-select: none; opacity: 0.8; }
+        .revealed { filter: blur(0); pointer-events: auto; opacity: 1; transform: scale(1.02); }
+        
+        .year-badge {
+            background: var(--accent); color: white; padding: 6px 16px;
+            border-radius: 100px; font-weight: 800; font-size: 1.3rem; display: inline-block; margin-bottom: 12px;
+        }
+        .source-title { font-size: 1.4rem; font-weight: 800; margin: 10px 0; color: #fff; line-height: 1.2; }
+        .song-details { color: var(--text-sec); font-size: 1rem; }
+
+        .controls { display: flex; gap: 12px; width: 100%; margin-top: 25px; }
+        .btn-action { 
+            flex: 1; padding: 16px; border-radius: 14px; border: none; font-weight: 700; font-size: 1rem; 
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-reveal { background: #fff; color: #000; }
+        .btn-next { background: #333; color: #fff; border: 1px solid #444; }
+
+        /* Safe area per iPhone X e successivi */
+        @supports(padding: max(0px)) {
+            body { padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <h1>BudHitster 🌍</h1>
+
+        <div id="category-section" style="width: 100%;">
+            
+            <div class="country-wrapper">
+                <label for="country-picker">Catalogo:</label>
+                <select id="country-picker">
+                    <option value="IT" selected>🇮🇹 Italia</option>
+                    <option value="US">🇺🇸 USA / Int.</option>
+                    <option value="ES">🇪🇸 Spagna</option>
+                    <option value="FR">🇫🇷 Francia</option>
+                </select>
+            </div>
+            
+            <div class="category-grid">
+                <button class="btn btn-film" onclick="prepareGame('film')">
+                    <span class="btn-icon">🎬</span> Film
+                </button>
+                <button class="btn btn-tv" onclick="prepareGame('tv')">
+                    <span class="btn-icon">📺</span> Serie TV
+                </button>
+                <button class="btn btn-cartoon" onclick="prepareGame('cartoon')">
+                    <span class="btn-icon">🏰</span> Cartoni
+                </button>
+            </div>
+        </div>
+
+        <div id="game-area">
+            <div class="vinyl-container">
+                <div class="vinyl" id="vinyl-icon"></div>
+            </div>
+            
+            <p id="status-text">Caricamento...</p>
+
+            <div id="solution-card" class="card hidden-info">
+                <div class="year-badge" id="res-year">????</div>
+                <div class="source-title" id="res-source">Titolo Film</div>
+                <div class="song-details">
+                    <span id="res-song">Canzone</span> • <span id="res-artist">Artista</span>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-action btn-reveal" onclick="reveal()">
+                    <span>👁️</span> Rivela
+                </button>
+                <button class="btn btn-action btn-next" onclick="backToMenu()">
+                    <span>🔙</span> Menu
+                </button>
+            </div>
+            
+            <audio id="audio-player"></audio>
+        </div>
+    </div>
+
+    <script>
+        // --- LOGICA IDENTICA ---
+        const LOCALIZED_TERMS = {
+            IT: { // Italia
+                film: ['colonna sonora film', 'migliori colonne sonore', 'film italiano soundtrack', 'ennio morricone', 'soundtrack film'],
+                tv: ['sigle serie tv', 'sigle telefilm', 'fiction rai soundtrack'],
+                cartoon: ['sigle cartoni animati', 'cristina d\'avena', 'sigle cartoni', 'giorgio vanni']
+            },
+            US: { // USA (Default)
+                film: ['movie soundtrack', 'original motion picture score', 'epic movie music'],
+                tv: ['tv theme song', 'series soundtrack', 'hbo soundtrack'],
+                cartoon: ['disney soundtrack', 'cartoon theme', 'pixar soundtrack']
+            },
+            ES: { film: ['banda sonora'], tv: ['sintonias series'], cartoon: ['dibujos animados'] },
+            FR: { film: ['bande originale'], tv: ['générique série'], cartoon: ['dessins animés'] }
+        };
+
+        function searchItunes(term, country) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                const callbackName = 'itunes_' + Math.round(100000 * Math.random());
+                window[callbackName] = function(data) {
+                    delete window[callbackName]; document.body.removeChild(script); resolve(data.results);
+                };
+                const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&country=${country}&media=music&entity=song&limit=80&callback=${callbackName}`;
+                script.src = url; document.body.appendChild(script);
+            });
+        }
+
+        async function prepareGame(categoryKey) {
+            const countryCode = document.getElementById('country-picker').value;
+            const termsDict = LOCALIZED_TERMS[countryCode] || LOCALIZED_TERMS['US'];
+            const possibleTerms = termsDict[categoryKey];
+            const searchTerm = possibleTerms[Math.floor(Math.random() * possibleTerms.length)];
+            await startGame(searchTerm, countryCode);
+        }
+
+        async function startGame(searchTerm, countryCode) {
+            document.getElementById('category-section').style.display = 'none';
+            document.getElementById('game-area').style.display = 'flex';
+            document.getElementById('status-text').innerText = `Cerco in ${countryCode}: "${searchTerm}"...`;
+            resetUI();
+
+            try {
+                const tracks = await searchItunes(searchTerm, countryCode);
+                if (!tracks || tracks.length === 0) { alert("Nessuna canzone trovata!"); backToMenu(); return; }
+
+                let validTracks = tracks.filter(t => t.previewUrl && t.collectionName);
+                if(validTracks.length === 0) validTracks = tracks;
+
+                const randomTrack = validTracks[Math.floor(Math.random() * validTracks.length)];
+                
+                let filmTitle = randomTrack.collectionName || randomTrack.trackName;
+                filmTitle = filmTitle
+                    .replace(/Original Motion Picture Soundtrack/gi, "")
+                    .replace(/\(OST\)/gi, "").replace(/Music From The Motion Picture/gi, "")
+                    .replace(/Colonna Sonora Originale/gi, "").replace(/Le più belle sigle/gi, "")
+                    .replace(/Cristina D'Avena/gi, "").split(/[-(]/)[0].trim();
+                
+                if (filmTitle.length < 2) filmTitle = "Colonna Sonora";
+
+                document.getElementById('res-year').innerText = randomTrack.releaseDate.substring(0, 4);
+                document.getElementById('res-source').innerText = filmTitle;
+                document.getElementById('res-song').innerText = randomTrack.trackName;
+                document.getElementById('res-artist').innerText = randomTrack.artistName;
+
+                const audio = document.getElementById('audio-player');
+                if(randomTrack.previewUrl) {
+                    audio.src = randomTrack.previewUrl;
+                    audio.volume = 1.0;
+                    audio.oncanplay = () => { audio.play(); document.getElementById('vinyl-icon').classList.remove('paused'); document.getElementById('status-text').innerText = "In riproduzione..."; };
+                } else { startGame(searchTerm, countryCode); }
+                
+            } catch (error) { alert("Errore connessione."); backToMenu(); }
+        }
+
+        function reveal() {
+            document.getElementById('solution-card').classList.add('revealed');
+            document.getElementById('vinyl-icon').classList.add('paused');
+            document.getElementById('status-text').innerText = "Soluzione:";
+        }
+
+        function resetUI() {
+            document.getElementById('solution-card').classList.remove('revealed');
+            document.getElementById('audio-player').pause();
+            document.getElementById('vinyl-icon').classList.add('paused');
+        }
+
+        function backToMenu() {
+            resetUI();
+            document.getElementById('game-area').style.display = 'none';
+            document.getElementById('category-section').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
