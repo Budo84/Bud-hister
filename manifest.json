@@ -1,12 +1,12 @@
 {
   "name": "CineHitster",
   "short_name": "CineHitster",
-  "start_url": "./index.html",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#121212",
   "theme_color": "#121212",
   "orientation": "portrait",
-  "scope": "./",
+  "scope": "/",
   "icons": [
     {
       "src": "https://img.icons8.com/color/192/vinyl-record.png",
