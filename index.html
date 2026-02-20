@@ -6,7 +6,6 @@
     <title>Hitster Universe</title>
     
     <link rel="manifest" href="manifest.json">
-    
     <meta name="theme-color" content="#121212">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -24,7 +23,6 @@
         .app-container { width: 100%; max-width: 500px; display: flex; flex-direction: column; align-items: center; }
         h1 { margin: 10px 0 20px 0; font-size: clamp(1.8rem, 5vw, 2.5rem); color: var(--accent); letter-spacing: -1px; }
         
-        /* Gestione Menu */
         .menu-section { width: 100%; display: flex; flex-direction: column; align-items: center; animation: fadeIn 0.3s ease; }
         .hidden { display: none !important; }
 
@@ -38,7 +36,6 @@
         .btn:active { transform: scale(0.95); }
         .btn-icon { font-size: 1.8rem; display: block; }
 
-        /* Colori Bottoni */
         .btn-main-1 { background: linear-gradient(135deg, #ff416c, #ff4b2b); width: 100%; max-width: 300px; margin-bottom: 15px; flex-direction: row; justify-content: center; padding: 20px; }
         .btn-main-2 { background: linear-gradient(135deg, #8E2DE2, #4A00E0); width: 100%; max-width: 300px; flex-direction: row; justify-content: center; padding: 20px; }
         .btn-back { background: #222; border: 1px solid #444; width: auto; padding: 12px 25px; flex-direction: row; border-radius: 50px; font-size: 0.9rem; margin-top: 10px; }
@@ -65,10 +62,13 @@
         .source-title { font-size: 1.4rem; font-weight: 800; margin: 10px 0; color: #fff; line-height: 1.2; }
         .song-details { color: var(--text-sec); font-size: 1rem; }
         
-        .controls { display: flex; gap: 12px; width: 100%; margin-top: 25px; }
-        .btn-action { flex: 1; padding: 16px; border-radius: 14px; border: none; font-weight: 700; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        /* Griglia a 3 bottoni per i controlli in gioco */
+        .controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; width: 100%; margin-top: 25px; }
+        .btn-action { padding: 15px 5px; border-radius: 12px; border: none; font-weight: 700; font-size: 0.95rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
         .btn-reveal { background: #fff; color: #000; }
-        .btn-next { background: #333; color: #fff; border: 1px solid #444; }
+        .btn-next-song { background: #1DB954; color: #fff; } /* Verde Spotify per la "Prossima" */
+        .btn-back-cat { background: #333; color: #fff; border: 1px solid #444; }
+        
         @supports(padding: max(0px)) { body { padding-bottom: max(20px, env(safe-area-inset-bottom)); } }
     </style>
 </head>
@@ -97,7 +97,7 @@
                 <button class="btn btn-tv" onclick="prepareCinema('tv')"><span class="btn-icon">📺</span> Serie TV</button>
                 <button class="btn btn-cartoon" onclick="prepareCinema('cartoon')"><span class="btn-icon">🏰</span> Cartoni</button>
             </div>
-            <button class="btn btn-back" onclick="navTo('main')">🔙 Torna al menu</button>
+            <button class="btn btn-back" onclick="navTo('main')">🔙 Torna al menu principale</button>
         </div>
 
         <div id="sarabanda-menu" class="menu-section hidden">
@@ -108,7 +108,7 @@
                 <button class="btn btn-sara3" onclick="prepareSarabanda('int_old')"><span class="btn-icon">🪩</span> INT '60-'90</button>
                 <button class="btn btn-sara4" onclick="prepareSarabanda('int_new')"><span class="btn-icon">🎧</span> INT 2000-Oggi</button>
             </div>
-            <button class="btn btn-back" onclick="navTo('main')">🔙 Torna al menu</button>
+            <button class="btn btn-back" onclick="navTo('main')">🔙 Torna al menu principale</button>
         </div>
 
         <div id="game-area" class="menu-section hidden">
@@ -122,23 +122,23 @@
             </div>
             
             <div class="controls">
-                <button class="btn btn-action btn-reveal" onclick="reveal()">👁️ Rivela</button>
-                <button class="btn btn-action btn-next" onclick="navBackFromGame()">🔙 Esci</button>
+                <button class="btn btn-action btn-reveal" onclick="reveal()"><span>👁️</span> Rivela</button>
+                <button class="btn btn-action btn-next-song" onclick="playNextSong()"><span>⏭️</span> Prossima</button>
+                <button class="btn btn-action btn-back-cat" onclick="navBackFromGame()"><span>🔙</span> Categorie</button>
             </div>
             <audio id="audio-player"></audio>
         </div>
     </div>
 
     <script>
-        // --- SERVICE WORKER ---
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('sw.js');
-            });
+            window.addEventListener('load', function() { navigator.serviceWorker.register('sw.js'); });
         }
 
-        // --- GESTIONE NAVIGAZIONE MENU ---
+        // --- VARIABILI DI STATO ---
         let currentMode = 'main';
+        let currentActiveCategoryKey = ''; 
+        let currentActiveCountryCode = '';
 
         function navTo(target) {
             document.querySelectorAll('.menu-section').forEach(el => el.classList.add('hidden'));
@@ -153,7 +153,7 @@
 
         function navBackFromGame() {
             resetUI();
-            navTo(currentMode); // Torna al sottomenu da cui sei partito
+            navTo(currentMode);
         }
 
         // --- DIZIONARI ---
@@ -165,7 +165,7 @@
         };
 
         const MUSIC_TERMS = {
-            ita_old: ['successi anni 60', 'successi anni 70', 'successi anni 80 italia', 'sanremo anni 80', 'festivalbar anni 90', 'cantautori italiani', 'mina battisti', 'hit mania dance 90'],
+            ita_old: ['successi anni 60', 'successi anni 70', 'successi anni 80 italia', 'sanremo anni 80', 'festivalbar anni 90', 'cantautori italiani', 'mina battisti'],
             ita_new: ['sanremo 2000', 'sanremo 2010', 'sanremo 2020', 'sanremo 2024', 'tormentoni estivi', 'top hits italia', 'indie italiano pop'],
             int_old: ['60s pop hits', '70s hits', '80s hits', '90s pop hits', 'mtv 90s', 'classic rock hits', 'disco music 70s', '80s new wave'],
             int_new: ['2000s hits', '2010s pop hits', 'billboard top 100', 'global hits 2020', 'tiktok hits', 'edm hits top']
@@ -181,76 +181,109 @@
                 const script = document.createElement('script');
                 const callbackName = 'itunes_' + Math.round(100000 * Math.random());
                 window[callbackName] = function(data) { delete window[callbackName]; document.body.removeChild(script); resolve(data.results); };
-                const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&country=${country}&media=music&entity=song&limit=100&callback=${callbackName}`;
+                const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&country=${country}&media=music&entity=song&limit=150&callback=${callbackName}`;
                 script.src = url; document.body.appendChild(script);
             });
         }
 
-        // --- PREPARAZIONE CINEHITSTER ---
+        // --- AVVIO GIOCO DA CATEGORIE ---
         async function prepareCinema(categoryKey) {
             if(!checkConnection()) return;
-            const countryCode = document.getElementById('country-picker').value;
-            const possibleTerms = (CINEMA_TERMS[countryCode] || CINEMA_TERMS['US'])[categoryKey];
+            currentActiveCategoryKey = categoryKey;
+            currentActiveCountryCode = document.getElementById('country-picker').value;
+            
+            const possibleTerms = (CINEMA_TERMS[currentActiveCountryCode] || CINEMA_TERMS['US'])[categoryKey];
             const searchTerm = possibleTerms[Math.floor(Math.random() * possibleTerms.length)];
-            await startGame(searchTerm, countryCode, 'cinema');
+            await startGame(searchTerm, currentActiveCountryCode, 'cinema');
         }
 
-        // --- PREPARAZIONE SARABANDA ---
         async function prepareSarabanda(categoryKey) {
             if(!checkConnection()) return;
+            currentActiveCategoryKey = categoryKey;
+            currentActiveCountryCode = categoryKey.startsWith('ita') ? 'IT' : 'US';
+
             const possibleTerms = MUSIC_TERMS[categoryKey];
             const searchTerm = possibleTerms[Math.floor(Math.random() * possibleTerms.length)];
-            const countryCode = categoryKey.startsWith('ita') ? 'IT' : 'US';
-            await startGame(searchTerm, countryCode, 'sarabanda');
+            await startGame(searchTerm, currentActiveCountryCode, 'sarabanda');
+        }
+
+        // TASTO PROSSIMA CANZONE
+        function playNextSong() {
+            if (currentMode === 'cinema') {
+                prepareCinema(currentActiveCategoryKey);
+            } else if (currentMode === 'sarabanda') {
+                prepareSarabanda(currentActiveCategoryKey);
+            }
         }
 
         // --- MOTORE DI GIOCO ---
         async function startGame(searchTerm, countryCode, mode) {
             document.querySelectorAll('.menu-section').forEach(el => el.classList.add('hidden'));
             document.getElementById('game-area').classList.remove('hidden');
-            document.getElementById('status-text').innerText = "Mescolo le carte...";
+            document.getElementById('status-text').innerText = "Cerco la traccia originale...";
             resetUI();
 
             try {
                 const tracks = await searchItunes(searchTerm, countryCode);
-                if (!tracks || tracks.length === 0) { alert("Nessuna canzone trovata!"); navBackFromGame(); return; }
+                if (!tracks || tracks.length === 0) { alert("Nessuna canzone trovata! Riprova."); navBackFromGame(); return; }
                 
-                let validTracks = tracks.filter(t => t.previewUrl);
-                if(validTracks.length === 0) validTracks = tracks;
+                // FILTRO "ANTI-BASI" E "ORIGINALI"
+                let validTracks = tracks.filter(t => {
+                    if (!t.previewUrl) return false;
+                    
+                    let trackStr = (t.trackName + " " + t.artistName + " " + t.collectionName).toLowerCase();
+                    const forbiddenWords = ['karaoke', 'instrumental', 'base musicale', 'tribute', 'cover', 'remaster', 'live version', 'in the style of', 'tribute to', 'strumentale'];
+                    
+                    for (let word of forbiddenWords) {
+                        if (trackStr.includes(word)) return false; // Scarta la canzone
+                    }
+                    return true;
+                });
+
+                // Rete di sicurezza: se il filtro ha eliminato TUTTO (es. canzoni anni 60 esistono solo rimasterizzate), abbassiamo gli standard
+                if(validTracks.length === 0) validTracks = tracks.filter(t => t.previewUrl);
                 
                 const randomTrack = validTracks[Math.floor(Math.random() * validTracks.length)];
                 document.getElementById('res-year').innerText = randomTrack.releaseDate.substring(0, 4);
 
-                // LOGICA DI MOSTRA TESTO IN BASE ALLA MODALITÀ
                 if (mode === 'cinema') {
                     let filmTitle = randomTrack.collectionName || randomTrack.trackName;
                     filmTitle = filmTitle.replace(/Original Motion Picture Soundtrack/gi, "").replace(/\(OST\)/gi, "").replace(/Music From The Motion Picture/gi, "").replace(/Colonna Sonora Originale/gi, "").replace(/Le più belle sigle/gi, "").replace(/Cristina D'Avena/gi, "").split(/[-(]/)[0].trim();
                     if (filmTitle.length < 2) filmTitle = "Colonna Sonora";
                     
-                    document.getElementById('res-title').innerText = filmTitle; // TITOLO GRANDE = FILM
-                    document.getElementById('res-subtitle1').innerText = randomTrack.trackName; // CANZONE
-                    document.getElementById('res-subtitle2').innerText = randomTrack.artistName; // ARTISTA
+                    document.getElementById('res-title').innerText = filmTitle;
+                    document.getElementById('res-subtitle1').innerText = randomTrack.trackName;
+                    document.getElementById('res-subtitle2').innerText = randomTrack.artistName;
                 } 
                 else if (mode === 'sarabanda') {
                     let cleanSongTitle = randomTrack.trackName.replace(/\(Remastered.*\)/gi, "").replace(/\(Radio Edit\)/gi, "").replace(/\(Live.*\)/gi, "").trim();
                     
-                    document.getElementById('res-title').innerText = cleanSongTitle; // TITOLO GRANDE = CANZONE
-                    document.getElementById('res-subtitle1').innerText = randomTrack.artistName; // ARTISTA
-                    document.getElementById('res-subtitle2').innerText = randomTrack.collectionName || "Singolo"; // ALBUM
+                    document.getElementById('res-title').innerText = cleanSongTitle;
+                    document.getElementById('res-subtitle1').innerText = randomTrack.artistName;
+                    document.getElementById('res-subtitle2').innerText = randomTrack.collectionName || "Singolo";
                 }
 
-                // AUDIO
+                // RIPRODUZIONE AUDIO
                 const audio = document.getElementById('audio-player');
                 if(randomTrack.previewUrl) {
                     audio.src = randomTrack.previewUrl; audio.volume = 1.0;
                     audio.oncanplay = () => { audio.play(); document.getElementById('vinyl-icon').classList.remove('paused'); document.getElementById('status-text').innerText = "Ascolta e indovina l'anno!"; };
-                } else { startGame(searchTerm, countryCode, mode); } // Riprova se audio manca
+                } else { playNextSong(); } // Ripesca autom. se per caso manca l'audio
                 
-            } catch (error) { alert("Errore connessione."); navBackFromGame(); }
+            } catch (error) { alert("Errore connessione ai server musicali."); navBackFromGame(); }
         }
 
-        function reveal() { document.getElementById('solution-card').classList.add('revealed'); document.getElementById('vinyl-icon').classList.add('paused'); document.getElementById('status-text').innerText = "Soluzione:"; }
-        function resetUI() { document.getElementById('solution-card').classList.remove('revealed'); document.getElementById('audio-player').pause(); document.getElementById('vinyl-icon').classList.add('paused'); }
+        function reveal() { 
+            document.getElementById('solution-card').classList.add('revealed'); 
+            document.getElementById('vinyl-icon').classList.add('paused'); 
+            document.getElementById('status-text').innerText = "Soluzione:"; 
+        }
+        
+        function resetUI() { 
+            document.getElementById('solution-card').classList.remove('revealed'); 
+            document.getElementById('audio-player').pause(); 
+            document.getElementById('vinyl-icon').classList.add('paused'); 
+        }
     </script>
 </body>
 </html>
