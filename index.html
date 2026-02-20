@@ -100,14 +100,23 @@
             <button class="btn btn-back" onclick="navTo('main')">🔙 Torna al menu principale</button>
         </div>
 
-        <div id="sarabanda-menu" class="menu-section hidden">
+       <div id="sarabanda-menu" class="menu-section hidden">
             <p style="color: var(--text-sec); margin-bottom:20px; font-size: 0.95rem;">Scegli il repertorio musicale:</p>
+            
             <div class="category-grid">
+                <button class="btn" style="background: linear-gradient(135deg, #FF512F, #DD2476); grid-column: span 2;" onclick="prepareSarabanda('ita_all')">
+                    <span class="btn-icon">🇮🇹</span> MIX ITALIA (1960-Oggi)
+                </button>
+                <button class="btn" style="background: linear-gradient(135deg, #1FA2FF, #12D8FA, #A6FFCB); color: #000; grid-column: span 2;" onclick="prepareSarabanda('int_all')">
+                    <span class="btn-icon">🌍</span> MIX MONDO (1960-Oggi)
+                </button>
+
                 <button class="btn btn-sara1" onclick="prepareSarabanda('ita_old')"><span class="btn-icon">🍝</span> ITA '60-'90</button>
-                <button class="btn btn-sara2" onclick="prepareSarabanda('ita_new')"><span class="btn-icon">📱</span> ITA 2000-Oggi</button>
+                <button class="btn btn-sara2" onclick="prepareSarabanda('ita_new')"><span class="btn-icon">📱</span> ITA 2000+</button>
                 <button class="btn btn-sara3" onclick="prepareSarabanda('int_old')"><span class="btn-icon">🪩</span> INT '60-'90</button>
-                <button class="btn btn-sara4" onclick="prepareSarabanda('int_new')"><span class="btn-icon">🎧</span> INT 2000-Oggi</button>
+                <button class="btn btn-sara4" onclick="prepareSarabanda('int_new')"><span class="btn-icon">🎧</span> INT 2000+</button>
             </div>
+            
             <button class="btn btn-back" onclick="navTo('main')">🔙 Torna al menu principale</button>
         </div>
 
@@ -165,10 +174,35 @@
         };
 
         const MUSIC_TERMS = {
-            ita_old: ['successi anni 60', 'successi anni 70', 'successi anni 80 italia', 'sanremo anni 80', 'festivalbar anni 90', 'cantautori italiani', 'mina battisti'],
-            ita_new: ['sanremo 2000', 'sanremo 2010', 'sanremo 2020', 'sanremo 2024', 'tormentoni estivi', 'top hits italia', 'indie italiano pop'],
-            int_old: ['60s pop hits', '70s hits', '80s hits', '90s pop hits', 'mtv 90s', 'classic rock hits', 'disco music 70s', '80s new wave'],
-            int_new: ['2000s hits', '2010s pop hits', 'billboard top 100', 'global hits 2020', 'tiktok hits', 'edm hits top']
+            // Categorie "Vecchie" (Nostalgia)
+            ita_old: ['successi italiani anni 60', 'musica italiana anni 70', 'festival sanremo anni 80', 'cantautori italiani storici', 'anni 90 dance italia', 'festivalbar compilation'],
+            int_old: ['60s pop hits', '70s rock hits', '80s disco hits', '90s pop anthems', 'oldies but goldies', 'classic rock anthems'],
+
+            // Categorie "Nuove" (Moderno)
+            ita_new: ['tormentoni estivi 2000', 'pop italiano 2010', 'trap italia', 'sanremo 2020', 'nuova scena pop italiana', 'top 50 italia oggi'],
+            int_new: ['2000s pop hits', '2010s club hits', 'tiktok viral hits', 'global top 50', 'billboard hot 100 today'],
+
+            // --- NUOVE CATEGORIE "MIX TOTALE" (1960 - OGGI) ---
+            ita_all: [
+                'migliori canzoni italiane anni 60', 
+                'successi italiani anni 70', 
+                'sanremo anni 80', 
+                'festivalbar anni 90', 
+                'pop italiano 2000', 
+                'hit italia 2010', 
+                'classifiche musica italiana oggi',
+                'storia della musica italiana'
+            ],
+            int_all: [
+                'best songs of the 60s', 
+                '70s greatest hits', 
+                '80s number one hits', 
+                '90s party hits', 
+                '2000s throwback', 
+                'top hits 2010s', 
+                'current pop hits',
+                'greatest hits of all time'
+            ]
         };
 
         function checkConnection() {
